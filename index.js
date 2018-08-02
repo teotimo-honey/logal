@@ -31,7 +31,8 @@ const opts = options.parse({
 
 const getLogLevel = (strLevel) => {
   switch (opts.opt.level) {
-    case 'error': return 2;
+    case 'error': return 3;
+    case 'warn': return 2;
     case 'info': return 1;
     default: return 0;
   }
