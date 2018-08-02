@@ -1,0 +1,28 @@
+{
+  "name": "logal",
+  "version": "1.0.0",
+  "description": "An HTTP server that you can send data to",
+  "main": "index.js",
+  "scripts": {},
+  "bin": {
+    "logal": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/bricker/logal.git"
+  },
+  "dependencies": {
+    "options-parser": "^0.4.0"
+  },
+  "keywords": [
+    "log",
+    "server",
+    "logstream"
+  ],
+  "author": "Bryan Ricker",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bricker/logal/issues"
+  },
+  "homepage": "https://github.com/bricker/logal#readme"
+}
