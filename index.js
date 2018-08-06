@@ -3,6 +3,7 @@
 const options = require('options-parser');
 const http = require('http');
 const os = require('os');
+const package = require('./package');
 
 const opts = options.parse({
   level: {
@@ -26,8 +27,18 @@ const opts = options.parse({
     showHelp: { 
       banner: 'example: logal [options]'
     }
+  },
+  version: {
+    short: 'v',
+    help: 'Get the logal version',
+    flag: true,
   }
 });
+
+if (opts.opt.version) {
+  console.log(`logal ${package.version}`)
+  process.exit(0);
+}
 
 const getLogLevel = (strLevel) => {
   switch (opts.opt.level) {
