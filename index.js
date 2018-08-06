@@ -67,7 +67,7 @@ const server = http.createServer((req, res) => {
         const json = JSON.parse(body);
         const logLevel = getLogLevel(json.level || 1);
         if (logLevel >= outputLogLevel) {
-          console.log(`[${new Date()}] ${json.log}`);
+          console.log(`[${new Date()}]`, JSON.stringify(json.log));
         }
 
         res.writeHead(200);
