@@ -3,12 +3,19 @@
 const options = require('options-parser');
 const http = require('http');
 const os = require('os');
+var colors = require('colors/safe');
 const package = require('./package');
 
 const opts = options.parse({
   level: {
-    help: 'Which log level to show (debug, info, error)',
+    short: 'L',
+    help: 'Which log level to show (debug, info, warn, error)',
     default: 'debug',
+  },
+  format: {
+    short: 'f',
+    help: 'Output format. Options are: [collapsed, expanded]',
+    default: 'collapsed',
   },
   host: {
     short: 'h',
@@ -22,11 +29,10 @@ const opts = options.parse({
     default: '1095',
   },
   help: {
-    short: 'h',
     help: 'This help screen',
-    showHelp: { 
+    showHelp: {
       banner: 'example: logal [options]'
-    }
+    },
   },
   version: {
     short: 'v',
@@ -40,8 +46,33 @@ if (opts.opt.version) {
   process.exit(0);
 }
 
+let space;
+switch (opts.opt.format) {
+  case 'expanded': {
+    space = '\t';
+    break;
+  }
+  case 'collapsed':
+  default: {
+    space = null; // No spaces
+  }
+}
+
+const levelColor = (numLevel) => {
+  switch (numLevel) {
+    case 0:
+      return colors.blue;
+    case 2:
+      return colors.yellow;
+    case 3:
+      return colors.red;
+    default:
+      return colors.reset;
+  }
+}
+
 const getLogLevel = (strLevel) => {
-  switch (opts.opt.level) {
+  switch (strLevel) {
     case 'error': return 3;
     case 'warn': return 2;
     case 'info': return 1;
@@ -65,7 +96,7 @@ if (en0) {
     localIp = interface.address;
   });
 } else {
-  console.log('en0 interface not found. Check ifconfig to determine your local IP address.');
+  console.warn(colors.yellow('en0 interface not found. Check ifconfig to determine your local IP address.'));
 }
 
 const server = http.createServer((req, res) => {
@@ -78,13 +109,22 @@ const server = http.createServer((req, res) => {
         const json = JSON.parse(body);
         const logLevel = getLogLevel(json.level || 1);
         if (logLevel >= outputLogLevel) {
-          console.log(`[${new Date()}]`, JSON.stringify(json.log));
+          const msgColor = levelColor(logLevel);
+          const formattedDate = new Date().toLocaleDateString('en', {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: false,
+          });
+          console.log(colors.magenta(`[${json.level}] [${formattedDate}]`), msgColor(JSON.stringify(json.log, null, space)));
         }
 
         res.writeHead(200);
         res.end('200 OK');
       } catch(e) {
-        console.error("Couldn't parse JSON");
+        console.error(colors.red("Couldn't parse JSON"));
         res.writeHead(500);
         res.end('500 Internal Server Error');
       }
@@ -101,7 +141,7 @@ server.listen(port, host, (err) => {
     return console.log('error', err);
   }
 
-  console.log('send me your logs!');
-  console.log(`Local IP: ${localIp || 'Unknown'}`);
-  console.log(`Port: ${port}`);
+  console.log(colors.green('Welcome to Logal! Send me your Logs!'));
+  console.log(colors.grey('Local IP: ') + colors.reset.bold(localIp || 'Unknown'));
+  console.log(colors.grey('Port: ') + colors.reset.bold(port));
 })
