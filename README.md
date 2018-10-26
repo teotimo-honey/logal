@@ -11,7 +11,12 @@ $ npm install -g logal
 ## Usage
 Basic usage:
 ```
-$ logal
+$ logal -k <at least 8 characters>
+```
+
+Formatted:
+```
+$ logal -f expanded --format-char s --format-size 2 -k <at least 8 characters>
 ```
 
 Run `logal --help` for more options.
