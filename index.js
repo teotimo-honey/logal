@@ -63,15 +63,16 @@ if (opts.opt.version) {
 let encKey;
 const algorithm = 'aes-256-cbc';
 
-function encrypt(text){
-  const cipher = crypto.createCipher(algorithm, encKey);
-  let crypted = cipher.update(text,'utf8', 'hex');
-  crypted += cipher.final('hex');
-  return crypted;
+function encrypt(text) {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(algorithm, Buffer.from(encKey, 'hex'), iv);
+  let encrypted = cipher.update(text,'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return { encrypted, iv: iv.toString('hex') };
 }
 
-function decrypt(text){
-  const decipher = crypto.createDecipher(algorithm, encKey);
+function decrypt(text, iv) {
+  const decipher = crypto.createDecipheriv(algorithm, Buffer.from(encKey, 'hex'), Buffer.from(iv, 'hex'));
   let dec = decipher.update(text,'hex', 'utf8');
   dec += decipher.final('utf8');
   return dec;
@@ -149,7 +150,8 @@ const server = http.createServer((req, res) => {
             minute: 'numeric',
             hour12: false,
           });
-          console.log(colors.magenta(`[${json.level}] [${formattedDate}]`), msgColor(JSON.stringify(decrypt(json.log), null, space)));
+          const msg = decrypt(json.log, json.iv);
+          console.log(colors.magenta(`[${json.level}] [${formattedDate}]`), msgColor(JSON.stringify(JSON.parse(msg), null, space)));
         }
 
         res.writeHead(200);
@@ -172,16 +174,18 @@ server.listen(port, host, (err) => {
     console.error('error', err);
     return process.exit(1);
   }
-  encKey = opts.opt.encKey;
-  if (encKey.length < 8) {
+  if (opts.opt.encKey.length < 8) {
     console.error(colors.red('Encryption key is too short; it must be at least 8 characters'));
     return process.exit(1);
   }
+  encKey = crypto.createHash('sha256').update(opts.opt.encKey).digest('hex');
 
   console.log(colors.green('Welcome to Logal! Send me your Logs!'));
   console.log(colors.grey('Local IP: ') + colors.reset.bold(localIp || 'Unknown'));
   console.log(colors.grey('Port: ') + colors.reset.bold(port));
   console.log(colors.grey('Encryption Key: ') + colors.reset.bold(encKey));
   console.log('\n');
-  console.log(colors.grey('Test Value:'), colors.bold(encrypt('Your decryption algorithm and key both match!')));
+  const { encrypted, iv } = encrypt(JSON.stringify({ message: 'Your decryption algorithm and key both match!' }));
+  console.log(colors.grey('Test IV: '), colors.reset.bold(iv));
+  console.log(colors.grey('Test Value:'), colors.bold(encrypted));
 })
