@@ -13,6 +13,11 @@ $ npm install -g logal
 ### Starting the Server
 Basic usage:
 ```
+$ logal
+```
+
+Basic usage with encryption:
+```
 $ logal -k <at least 8 characters>
 ```
 
@@ -26,6 +31,17 @@ Run `logal --help` for more options.
 ### Sending Logs to the Server
 
 Example payload:
+```
+{
+	"level": 3,
+	"log": {
+	  "message": "The 'log' property can be anything that is JSON stringifyable if there is no encryption.",
+	  "withEncryption": "If encrypted, the 'log' property must be a string."
+	}
+}
+```
+
+Example payload with encryption:
 ```
 {
 	"level": 3,
